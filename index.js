@@ -44,6 +44,14 @@ async function run () {
             const addedService = await serviceCollection.insertOne(newService);
             res.send(addedService);
         });
+
+        // Service Delete 
+        app.delete('/manage/delete/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const action = await serviceCollection.deleteOne(query);
+            res.send(action);
+        });
     }
     finally{
         
