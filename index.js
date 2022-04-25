@@ -21,6 +21,7 @@ async function run () {
     try{
         await client.connect();
         const serviceCollection = client.db("CarService").collection("services");
+        const orderCollection = client.db("CarService").collection("orders");
 
         // service get 
         app.get('/services', async(req, res) => {
@@ -52,6 +53,16 @@ async function run () {
             const action = await serviceCollection.deleteOne(query);
             res.send(action);
         });
+
+
+        // =================== Order collection =====================
+
+        app.post('/order', async(req, res) => {
+            const order = req.body;
+            const result = await orderCollection.insertOne(order);
+            res.send(result);
+        });
+
     }
     finally{
         
