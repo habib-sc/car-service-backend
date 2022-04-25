@@ -14,6 +14,23 @@ app.get('/', (req, res) => {
     res.send('Car Service')
 });
 
+// jwt verification 
+function vefifyJWT(req, res, next){
+    const authHeader = req.headers.authorization; // receiving auth headers form frontend
+    if (!authHeader){
+        return res.status(401).send({message: 'unauthorized access'});
+    }
+    const token = authHeader.split(' ')[1]; //spilting auth header
+
+    // verifying user token and provide to req.
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(403).send({message: 'Forbidden Access'});
+        }
+        req.decoded = decoded;
+    })
+    next();
+}
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASS}@cluster0.4wnsh.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
@@ -75,12 +92,22 @@ async function run () {
         });
 
         // getting orders 
-        app.get('/orders', async(req, res) => {
+        app.get('/orders', vefifyJWT, async(req, res) => {
+            // Receiving email and decoded email 
+            const deCodedEmail = req.decoded.email;
             const email = req.query.email;
-            const query = {email: email};
-            const cursor = orderCollection.find(query);
-            const orders = await cursor.toArray();
-            res.send(orders);
+
+            // checking email and deCodedEmail
+            if (email === deCodedEmail) {
+                const query = {email: email};
+                const cursor = orderCollection.find(query);
+                const orders = await cursor.toArray();
+                res.send(orders);
+            }
+            else{
+                res.status(403).send({message: 'forbidden access'});
+            }
+            
         });
 
     }
